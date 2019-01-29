@@ -8,7 +8,8 @@ class GPRBFDerivative(object):
         if model is 'gpr':
             self._extract_gp_parameters(sklearn_model)
         elif model is 'svm':
-            self._extract_svm_parameters(sklearn_model)
+            raise NotImplementedError(f"Model '{model}' is not implemented yet.'")
+            # self._extract_svm_parameters(sklearn_model)
         else:
             raise ValueError(f"Unrecognized sklearn model: '{model}'")
 
@@ -25,6 +26,20 @@ class GPRBFDerivative(object):
         self.noise_variance = self.kernel.get_params()['k2__noise_level']
 
         return self
+
+    # def _extract_svm_parameters(self, svm_model):
+        
+    #     # extract data parameters
+    #     self.x_train = svm_model.X_train_
+    #     self.n_samples, self.d_dimensions = self.x_train.shape
+    #     self.weights = svm_model.alpha_
+
+    #     # Extract RBF kernel and RBF kernel parameters
+    #     self.kernel = svm_model.kernel_
+    #     self.length_scale = self.svm_model.get_params()['k1__length_scale']
+    #     self.noise_variance = self.svm_model.get_params()['k2__noise_level']
+
+    #     return self
 
     def __call__(self, X):
 
