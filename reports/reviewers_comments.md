@@ -1,6 +1,6 @@
 # Reviewer Comments
 
-## Original Text
+## Editors Response
 
 PONE-D-18-06167
 A Note on Derivatives in Kernel Methods
@@ -18,10 +18,8 @@ Ana Roque
 Academic Editor
 PLOS ONE
 
-
-[Note: HTML markup is below. Please do not edit.]
-
-Reviewers' comments:
+---
+## Reviewers' comments
 
 Reviewer's Responses to Questions
 
@@ -87,3 +85,30 @@ Reviewer #2: (No Response)
 
 - - - - -
 For journal use only: PONEDEC3
+
+
+---
+## My Summary
+
+In this section, I break down what the reviewer said and try to give my intial thoughts about what they said versus what we actually want to do.
+
+* Contributions for the Paper are not clear
+  > S/he claims that although the paper is interesting, s/he isn't clear what the contributions are from this paper. From my perspective, I really just want to link together the concepts of derivatives of kernel methods. So nothing super fancy but a small note (essentially an extended/glorified literature review with some personal ideas). However, I do think that the literative review lacked a coherent story of events. Instead it sounds a bit more like we just wanted to cover our asses with what we're talking about and make sure we cited everyone; which promotes a lost motivation.
+
+* "Failed to given insights of the Learned Functions"
+  > So the reviewer is stressing upon the idea that we did not insights. So maybe we weren't clear on what insights we would give. I don't want to stress on the data. I want to stress on the concepts. That basically the derivative has been studied in many applications but mainly from the point of view of their respective field (e.g. GP - Predictive Mean, SVM - Sensitivity, e.t.c.). But we want to take it a step further and promote the thinking of derivatives of any kernel function which could potentially mean something interesting to another kernel method.
+
+* "derivatives can be related to the margin"
+  > The reviewer points out that we don't verify the statement that the $||\omega||$ is related to the margin. We only state it. I guess this is a good point about why state a fact without giving any insight as to why or how. But this could also be attributed to people trying to talk about everything without explaining anything.
+
+* "Y-Axis of the plot (section 3.3, figure 2.0)"
+  > We didn't state what the y-axis is.
+
+* "aim of the proposed analysis is to gain insights on the learnt models, from real data"
+  > So...I have to read what we originally proposed because I don't remember us saying anything about the insights being on the data. If anything we just want to consolidate, clarify and motivate. Not actually do a full paper on data; that would be way too much.
+    
+  **TODO**: check where this statement came from and where in the abstract do we suggest this.
+* Experiment for Figure 2 - " computed on real datasets, and the generalization performance of the learnt models varying the regularization can be assessed"
+  > We could possibly do a full example to justify the regularization. But I think that is out of the scope of the paper. Again, to re-iterate, I don't want to do full-fledged examples because data is difficult to work with and would be an entire other paper in itself.
+* "Section 6.4 is interesting, but it is very short and not clear enough."
+  > He is referring to the section on Unfolding and Independization. This is indeed very short... To be honest, it really feels like an after-thought and I don't know how to rectify this. Actually, the whole HSIC section feels like an after-thought aside from the formulation. 
