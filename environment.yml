@@ -1,0 +1,13 @@
+name: sakame
+channels:
+- defaults
+dependencies:
+- numpy
+- scipy
+- scikit-learn
+- matplotlib
+- xarray
+- h5py
+- pandas
+- cartopy
+- dask

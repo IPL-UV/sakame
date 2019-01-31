@@ -2,7 +2,7 @@ import numpy as np
 
 
 class GPRBFDerivative(object):
-    def __init__(self, sklearn_model, model='gpr'):
+    def __init__(self, sklearn_model, model='krr'):
 
         # Extract the parameters from the model
         if model is 'gpr':
@@ -10,6 +10,8 @@ class GPRBFDerivative(object):
         elif model is 'svm':
             raise NotImplementedError(f"Model '{model}' is not implemented yet.'")
             # self._extract_svm_parameters(sklearn_model)
+        elif model is 'krr':
+            raise NotImplementedError(f"Model '{model}' is not implemented yet.")
         else:
             raise ValueError(f"Unrecognized sklearn model: '{model}'")
 
@@ -27,6 +29,9 @@ class GPRBFDerivative(object):
 
         return self
 
+    def _extract_krr_parameters(self, krr_model):
+
+        pass
     # def _extract_svm_parameters(self, svm_model):
         
     #     # extract data parameters
