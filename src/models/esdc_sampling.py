@@ -1,4 +1,5 @@
 import numpy as np 
+from models.derivatives import GPRBFDerivative
 import pandas as pd 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import WhiteKernel, RBF
@@ -32,9 +33,20 @@ class SamplingModel(object):
 
         return ypred 
 
-    def sensitivity(self, xtest):
+    def sensitivity(self, xtest, sens='dim', method='abs'):
 
-        pass 
+        der_model = GPRBFDerivative(self.model, model='gpr')
+
+        if sens is 'dim':
+            sens = der_model.sensitivity(xtest, method=method)
+
+        elif sens is 'point':
+            sens = der_model.point_sensitivity(xtest, method=method)
+
+        else:
+            raise ValueError(f"Unrecognized sensitivity type: {sens}.")
+
+        return sens
         
     def get_gp_model(self):
         pass
@@ -56,3 +68,5 @@ class SamplingModel(object):
         # Save Model
         self.model = joblib.load(self.model_path + save_name)
         return None
+
+    # def save_results(self, )

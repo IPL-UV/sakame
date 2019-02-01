@@ -32,19 +32,20 @@ class GPRBFDerivative(object):
     def _extract_krr_parameters(self, krr_model):
 
         pass
-    # def _extract_svm_parameters(self, svm_model):
+
+    def _extract_svm_parameters(self, svm_model):
         
-    #     # extract data parameters
-    #     self.x_train = svm_model.X_train_
-    #     self.n_samples, self.d_dimensions = self.x_train.shape
-    #     self.weights = svm_model.alpha_
+        ## extract data parameters
+        #self.x_train = svm_model.X_train_
+        #self.n_samples, self.d_dimensions = self.x_train.shape
+        #self.weights = svm_model.alpha_
 
-    #     # Extract RBF kernel and RBF kernel parameters
-    #     self.kernel = svm_model.kernel_
-    #     self.length_scale = self.svm_model.get_params()['k1__length_scale']
-    #     self.noise_variance = self.svm_model.get_params()['k2__noise_level']
+        ## Extract RBF kernel and RBF kernel parameters
+        #self.kernel = svm_model.kernel_
+        #self.length_scale = self.svm_model.get_params()['k1__length_scale']
+        #self.noise_variance = self.svm_model.get_params()['k2__noise_level']
 
-    #     return self
+        return self
 
     def __call__(self, X):
 

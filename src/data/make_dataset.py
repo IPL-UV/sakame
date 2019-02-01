@@ -128,7 +128,6 @@ class ESDCData(object):
             
             # Get variables as keys
             datasets = [key for key in h5_file.keys()]
-            print(datasets)
 
             for idataset in datasets:
 
@@ -210,26 +209,42 @@ class ToyData(object):
         
         return y
 
-def get_3dgrid(data, lat, lon, spa_dim=None):
+# def get_3dgrid(data, lat, lon, spa_dim=None):
+
+#     lat_vals,lat_idx = np.unique(lat, return_inverse=True)
+#     lon_vals, lon_idx = np.unique(lon, return_inverse=True)
+    
+#     if spa_dim:
+        
+#         n_dims = data.shape[1]
+#         labels_array = np.empty((lat_vals.shape[0], lon_vals.shape[0], n_dims))
+#     else:
+#         labels_array = np.empty((lat_vals.shape[0], lon_vals.shape[0]))
+        
+#     labels_array.fill(np.nan)
+
+#     if spa_dim:
+#         labels_array[lat_idx, lon_idx, :] = data
+#     else:
+#         labels_array[lat_idx, lon_idx] = data
+    
+#     return labels_array, lat_vals, lon_vals
+
+
+def get_3dgrid(data, lat, lon, old_lat, old_lon):
+    
+    points = np.vstack((lat, lon)).T
+#     print(points.shape, data.shape)
 
     lat_vals,lat_idx = np.unique(lat, return_inverse=True)
     lon_vals, lon_idx = np.unique(lon, return_inverse=True)
     
-    if spa_dim:
-        
-        n_dims = data.shape[1]
-        labels_array = np.empty((lat_vals.shape[0], lon_vals.shape[0], n_dims))
-    else:
-        labels_array = np.empty((lat_vals.shape[0], lon_vals.shape[0]))
-        
-    labels_array.fill(np.nan)
-
-    if spa_dim:
-        labels_array[lat_idx, lon_idx, :] = data
-    else:
-        labels_array[lat_idx, lon_idx] = data
+    grid_x, grid_y = np.meshgrid(old_lat, old_lon)
     
-    return labels_array, lat_vals, lon_vals
+    grid_z = griddata(points, data, (grid_x, grid_y), method='linear')
+    
+    
+    return grid_z.T
 
 def get_xy_indices(spatial_resolution=7, return_coord=None):
     """Given a spatial resolution window_size, this will return which
