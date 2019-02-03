@@ -39,13 +39,20 @@ class SamplingExp(object):
         pass
 
     def run_experiment(self, extract_minicubes=None):
-        xr_results_window = list()
+
+        if extract_minicubes:
+            print('Extracting minicubes...')
+            self.extract_minicubes()
+
+        # Initialize XR Results (With Window Sizes)
+        xr_results_full = None
+
+        results_df = pd.DataFrame()
+
         for iwindow in self.window_sizes:
-            print(iwindow)
+            print(f"Window Size: {iwindow}")
 
-            if extract_minicubes:
-                self.extract_minicubes()
-
+            print('Initialize data class')
             # Initialize data class
             esdc_data = ESDCData(
                 variables=self.variables,
@@ -54,33 +61,38 @@ class SamplingExp(object):
             )
 
             # Load Minicubes
+            print('Load minicubes')
             save_name = f"{self.save_names}_{iwindow}.h5"
             data = esdc_data.load_minicubes(save_name=save_name)
             
             # extract data
+            print('Extract datacube for plots...')
             plot_data = esdc_data.extract_datacube()
 
             # Get original coordinates
             xr_lon = plot_data.lon.values
             xr_lat = plot_data.lat.values
-            xr_results_full = list()
-            # Loop through different variables
+            
             xr_results = None
+
+
+
+            # Loop through different variables
+            
             for ivariable in self.variables:
-                print(ivariable)
+                print(f"Variable: {ivariable}")
                 # get time stamps
                 time_stamps = [keys for keys in data[ivariable].keys()]
 
                 
                 for itime in time_stamps:
-                    print(itime)
+                    print(f"Time Stamp: {itime}")
 
                     # extract data
                     X = data[ivariable][itime]['x']
                     Y = data[ivariable][itime]['y']
                     lat = data[ivariable][itime]['lon']
                     lon = data[ivariable][itime]['lat']
-                    print(X.shape, Y.shape, lat.shape, lon.shape)
 
                     # Split into training and testing
                     xtrain, xtest, ytrain, ytest = train_test_split(
@@ -107,6 +119,17 @@ class SamplingExp(object):
 
                     mae, mse, r2, rmse = self.get_summary_stats(ytest, ypred)
 
+                    # add results to dataframe
+                    results_df = results_df.append({
+                        'variable': ivariable,
+                        'time': itime,
+                        'window': iwindow,
+                        'mae': mae,
+                        'mse': mse,
+                        'rmse': rmse,
+                        'r2': r2
+                    }, ignore_index=True)
+                    
                     # ====================
                     # Get Plot Data
                     # ====================
@@ -132,14 +155,8 @@ class SamplingExp(object):
                                 'lon': xr_lon,
                                 'lat': xr_lat,
                                 'time': pd.date_range(itime, periods=1),
-                                'window': [iwindow]},
-                            attrs={
-                                'rmse': rmse,
-                                'mae': mae,
-                                'mse': mse,
-                                'r2': r2,
-                                'variable': ivariable
-                            }
+                                'window': [iwindow]}
+                            
                         )
                     else:
                         new_xr_results = xr.Dataset(
@@ -152,26 +169,38 @@ class SamplingExp(object):
                                 'lat': xr_lat,
                                 'time': pd.date_range(itime, periods=1),
                                 'window': [iwindow]},
-                            attrs={
-                                'rmse': rmse,
-                                'mae': mae,
-                                'mse': mse,
-                                'r2': r2,
-                                'variable': ivariable
-                            }
+                            # attrs={
+                            #     'rmse': rmse,
+                            #     'mae': mae,
+                            #     'mse': mse,
+                            #     'r2': r2,
+                            #     'variable': ivariable
+                            # }
                         )
 
                         xr_results = xr.concat([xr_results, new_xr_results], dim='time')
-                
+                        
+            # Merge XArray Results
+            if xr_results_full is None:
+                xr_results_full = xr_results
+            else:
+                xr_results_full = xr.concat([xr_results_full, xr_results], dim='window')
             # get mask
             mask_array = self.get_water_mask()
 
-            # Add Mask
-            xr_results.coords['mask'] = (('lat', 'lon'), mask_array)
 
-            # Save Results
-            save_name = f"{self.save_names}_{ivariable}.nc"
-            xr_results.to_netcdf(self.results_path + save_name)
+        # Add Mask
+        xr_results_full.coords['mask'] = (('lat', 'lon'), mask_array)
+
+        # Add Results Dataframe and experimental parameters
+        xr_results_full.attrs['num_training'] = self.num_training
+
+        print(xr_results_full)
+
+
+        # Save Results
+        xr_results_full.to_netcdf(self.results_path + self.save_names + '.nc')
+        results_df.to_csv(self.results_path + self.save_names + '.csv')
 
         return self
 
