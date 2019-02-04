@@ -254,7 +254,33 @@ class SamplingExp(object):
 
 def main():
 
-    pass
+    import sys
+    sys.path.insert(0, '/home/emmanuel/projects/2019_sakame/src')
+
+    from experiments.sampling import SamplingExp
+
+    start_time = '2010-06'
+    end_time = '2010-08'
+    num_training = 2000
+    variables = [
+        'land_surface_temperature',
+        'gross_primary_productivity'
+    ]
+    window_sizes = [3, 5, 7, 9, 11, 13, 15]
+    save_names = 'exp_v1'
+    sampling_exp = SamplingExp(
+        variables=variables,
+        window_sizes=window_sizes, 
+        save_names=save_names,
+        start_time=start_time,
+        end_time=end_time,
+        num_training=num_training)
+
+    sampling_exp.run_experiment(True);
+
+    return None
 
 if __name__ == "__main__":
-    pass
+    main()
+
+

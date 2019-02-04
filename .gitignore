@@ -90,3 +90,9 @@ target/
 
 # Pckle files
 *.pckl
+
+# Log Files
+/src/experiments/logs/
+
+# Slurm Scripts
+/src/experiments/slurm_sampling.sh

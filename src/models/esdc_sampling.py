@@ -69,4 +69,9 @@ class SamplingModel(object):
         self.model = joblib.load(self.model_path + save_name)
         return None
 
-    # def save_results(self, )
+def main():
+
+    pass
+
+if __name__ == "__main__":
+    pass
