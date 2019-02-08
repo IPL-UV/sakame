@@ -9,6 +9,8 @@ from py_esdc.data import window_xy, get_xy_indices, get_3dgrid
 import numpy as np
 import pandas as pd
 import xarray as xr
+import argparse
+
 
 class SamplingExp(object):
     def __init__(self, 
@@ -45,42 +47,44 @@ class SamplingExp(object):
             self.extract_minicubes()
 
         # Initialize XR Results (With Window Sizes)
-        xr_results_full = None
+        
 
-        results_df = pd.DataFrame()
+        
 
-        for iwindow in self.window_sizes:
-            print(f"Window Size: {iwindow}")
+         # Loop through different variables
+        for ivariable in self.variables:
+            print(f"Variable: {ivariable}")
 
-            print('Initialize data class')
-            # Initialize data class
-            esdc_data = ESDCData(
-                variables=self.variables,
-                time_frame=[self.start_time, self.end_time],
-                subsection=self.subsection
-            )
+            xr_results_full = None
+            results_df = pd.DataFrame()
 
-            # Load Minicubes
-            print('Load minicubes')
-            save_name = f"{self.save_names}_{iwindow}.h5"
-            data = esdc_data.load_minicubes(save_name=save_name)
-            
-            # extract data
-            print('Extract datacube for plots...')
-            plot_data = esdc_data.extract_datacube()
+            for iwindow in self.window_sizes:
+                print(f"Window Size: {iwindow}")
 
-            # Get original coordinates
-            xr_lon = plot_data.lon.values
-            xr_lat = plot_data.lat.values
-            
-            xr_results = None
+                print('Initialize data class')
+                # Initialize data class
+                esdc_data = ESDCData(
+                    variables=[str(ivariable)],
+                    time_frame=[self.start_time, self.end_time],
+                    subsection=self.subsection
+                )
+
+                # Load Minicubes
+                print('Load minicubes')
+                save_name = f"{self.save_names}_{iwindow}.h5"
+                data = esdc_data.load_minicubes(save_name=save_name)
+                
+                # extract data
+                print('Extract datacube for plots...')
+                plot_data = esdc_data.extract_datacube()
+
+                # Get original coordinates
+                xr_lon = plot_data.lon.values
+                xr_lat = plot_data.lat.values
+                
+                xr_results = None
 
 
-
-            # Loop through different variables
-            
-            for ivariable in self.variables:
-                print(f"Variable: {ivariable}")
                 # get time stamps
                 time_stamps = [keys for keys in data[ivariable].keys()]
 
@@ -111,11 +115,13 @@ class SamplingExp(object):
                     sens_type = 'dim'
                     sens_summary = self.sens_summary
 
-                    # sens_dim = sampling_model.sensitivity(
-                    #     xtest,
-                    #     sens=sens_type,
-                    #     method=sens_summary
-                    # )
+                    sens_dim = sampling_model.sensitivity(
+                        xtest,
+                        sens=sens_type,
+                        method=sens_summary
+                    )
+
+                    sens_ = np.mean(np.abs(sens_dim)) / iwindow
 
                     mae, mse, r2, rmse = self.get_summary_stats(ytest, ypred)
 
@@ -127,7 +133,8 @@ class SamplingExp(object):
                         'mae': mae,
                         'mse': mse,
                         'rmse': rmse,
-                        'r2': r2
+                        'r2': r2,
+                        'sens': sens_
                     }, ignore_index=True)
                     
                     # ====================
@@ -169,38 +176,31 @@ class SamplingExp(object):
                                 'lat': xr_lat,
                                 'time': pd.date_range(itime, periods=1),
                                 'window': [iwindow]},
-                            # attrs={
-                            #     'rmse': rmse,
-                            #     'mae': mae,
-                            #     'mse': mse,
-                            #     'r2': r2,
-                            #     'variable': ivariable
-                            # }
                         )
 
                         xr_results = xr.concat([xr_results, new_xr_results], dim='time')
                         
-            # Merge XArray Results
-            if xr_results_full is None:
-                xr_results_full = xr_results
-            else:
-                xr_results_full = xr.concat([xr_results_full, xr_results], dim='window')
-            # get mask
-            mask_array = self.get_water_mask()
+                # Merge XArray Results
+                if xr_results_full is None:
+                    xr_results_full = xr_results
+                else:
+                    xr_results_full = xr.concat([xr_results_full, xr_results], dim='window')
+                # get mask
+                mask_array = self.get_water_mask()
 
 
-        # Add Mask
-        xr_results_full.coords['mask'] = (('lat', 'lon'), mask_array)
+            # Add Mask
+            xr_results_full.coords['mask'] = (('lat', 'lon'), mask_array)
 
-        # Add Results Dataframe and experimental parameters
-        xr_results_full.attrs['num_training'] = self.num_training
+            # Add Results Dataframe and experimental parameters
+            xr_results_full.attrs['num_training'] = self.num_training
 
-        print(xr_results_full)
+            # print(xr_results_full)
 
 
-        # Save Results
-        xr_results_full.to_netcdf(self.results_path + self.save_names + '.nc')
-        results_df.to_csv(self.results_path + self.save_names + '.csv')
+            # Save Results
+            xr_results_full.to_netcdf(self.results_path + self.save_names + f'_{ivariable}.nc')
+            results_df.to_csv(self.results_path + self.save_names + f'_{ivariable}.csv')
 
         return self
 
@@ -259,13 +259,35 @@ def main():
 
     from experiments.sampling import SamplingExp
 
+    parser = argparse.ArgumentParser(description='Sampling Experiment')
+
+    parser.add_argument(
+        '-v', '--variable',
+        default='lst',
+        type=str,
+        help='Variable name.'
+    )
+
+    # Parse Input Arguments
+    args = parser.parse_args()
+
+    if args.variable in ['lst']:
+        variables = list('land_surface_temperature')
+    elif args.variable in ['gpp']:
+        variables = list('gross_primary_productivity')
+    elif args.variable in ['both', 'all']:
+        variables = list(
+            'land_surface_temperature',
+            'gross_primary_productivity'
+        )
+    else:
+        raise ValueError(f"Unrecognized variable: {args.variable}")
+
+
     start_time = '2010-06'
     end_time = '2010-08'
     num_training = 2000
-    variables = [
-        'land_surface_temperature',
-        'gross_primary_productivity'
-    ]
+
     window_sizes = [3, 5, 7, 9, 11, 13, 15]
     save_names = 'exp_v1'
     sampling_exp = SamplingExp(

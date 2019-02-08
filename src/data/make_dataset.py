@@ -8,10 +8,13 @@ import xarray as xr
 import h5py
 
 class ESDCData(object):
-    def __init__(self, variables=['gross_primary_productivity'], time_frame=None, subsection=None):
+    def __init__(self, variables=['gross_primary_productivity'], time_frame=None, subsection=None, minicube_path=None):
 
         self.data_path = '/media/disk/databases/BACI-CABLAB/low_res_data/'
-        self.minicube_path = '/home/emmanuel/projects/2019_sakame/data/processed/'
+        if minicube_path is None:
+            self.minicube_path = '/home/emmanuel/projects/2019_sakame/data/processed/'
+        else:
+            self.minicube_path = minicube_path
 
         self.variables = variables
         self.time_frame = time_frame 
@@ -26,7 +29,7 @@ class ESDCData(object):
         for iteration, ivariable in enumerate(self.variables):
             
             if iteration == 0:
-                
+                print(self.data_path + ivariable)
                 data = xr.open_mfdataset(self.data_path + ivariable + '/*.nc')
                 
             else:
