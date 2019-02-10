@@ -4,6 +4,8 @@ import pandas as pd
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import WhiteKernel, RBF
 from sklearn.externals import joblib
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
 
 class SamplingModel(object):
     def __init__(self):
@@ -16,7 +18,7 @@ class SamplingModel(object):
 
         kernel = RBF() + WhiteKernel() 
 
-        gp_model = GaussianProcessRegressor(kernel=kernel, normalize_y=True, n_restarts_optimizer=1)
+        gp_model = GaussianProcessRegressor(kernel=kernel, normalize_y=True, n_restarts_optimizer=10)
 
         gp_model.fit(xtrain, ytrain)
 
@@ -24,6 +26,25 @@ class SamplingModel(object):
 
         return self 
 
+    def get_statistics(self, X, Y):
+
+        ypred = self.test_model(X)
+
+        results = dict()
+        mae = mean_absolute_error(ypred, Y)
+        mse = mean_squared_error(ypred, Y)
+        r2 = r2_score(ypred, Y)
+        rmse = np.sqrt(mse)
+        sens = self.sensitivity(X, sens='dim', method='abs')
+        sens = np.mean(np.abs(sens)) / X.shape[1]
+
+        results['mae'] = mae 
+        results['mse'] = mse 
+        results['r2'] = r2
+        results['rmse'] = rmse
+        results['sens'] = sens
+        return results
+        
     def test_model(self, xtest):
 
         if self.model is None:

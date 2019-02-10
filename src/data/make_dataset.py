@@ -29,7 +29,7 @@ class ESDCData(object):
         for iteration, ivariable in enumerate(self.variables):
             
             if iteration == 0:
-                print(self.data_path + ivariable)
+                # print(self.data_path + ivariable)
                 data = xr.open_mfdataset(self.data_path + ivariable + '/*.nc')
                 
             else:
@@ -51,6 +51,13 @@ class ESDCData(object):
             data = data.sel(time=slice(self.time_frame[0], self.time_frame[1]))
         else:
             pass
+
+        # Add Mask
+        # print(data)
+        
+        mask_data = self.get_water_mask()
+        # print(mask_data)
+        data.coords['mask'] = (('lat', 'lon'), mask_data)
 
         self.data = data 
         return data
@@ -154,6 +161,20 @@ class ESDCData(object):
 
         return datadict
 
+    def get_water_mask(self):
+
+        # Extract original cube
+        mask_data = xr.open_dataset(self.data_path + 'water_mask/2001_water_mask.nc')
+
+        # EUROPE
+        if self.subsection is None:
+            pass
+        elif self.subsection == 'europe':
+            mask_data = mask_data.sel(lat=slice(71.5, 35.5), lon=slice(-18.0, 60.0))
+        else:
+            raise ValueError(f"Unrecognized subsection: {self.subsection}")
+
+        return mask_data.isel(time=0).water_mask
 
 class ToyData(object):
     def __init__(self):
