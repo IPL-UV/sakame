@@ -1,8 +1,11 @@
 name: sakame
 channels:
 - defaults
+- conda-forge
 dependencies:
 - numpy
+- numba
+- numexpr
 - scipy
 - scikit-learn
 - matplotlib
@@ -11,3 +14,4 @@ dependencies:
 - pandas
 - cartopy
 - dask
+- netcdf4

@@ -6,6 +6,12 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 import h5py
+from sklearn.utils import check_random_state
+
+from matplotlib import pyplot as plt
+from matplotlib.colors import (ListedColormap, LinearSegmentedColormap)
+from mpl_toolkits.mplot3d import axes3d
+
 
 class ESDCData(object):
     def __init__(self, variables=['gross_primary_productivity'], time_frame=None, subsection=None, minicube_path=None):
@@ -176,6 +182,7 @@ class ESDCData(object):
 
         return mask_data.isel(time=0).water_mask
 
+
 class ToyData(object):
     def __init__(self):
         pass
@@ -207,7 +214,7 @@ class ToyData(object):
         """
 
         # Fix random state
-        np.random.seed(seed=0)
+        rng = check_random_state(random_state)
 
         # Different functions
         if func in ['sinc']:
@@ -229,36 +236,197 @@ class ToyData(object):
             raise ValueError('Unrecognized Function.')
 
         # Add noise to data
-        y += noise * np.random.randn(np.shape(x)[0])
+        y += noise * rng.randn(np.shape(x)[0])
         
         return y
 
-# def get_3dgrid(data, lat, lon, spa_dim=None):
 
-#     lat_vals,lat_idx = np.unique(lat, return_inverse=True)
-#     lon_vals, lon_idx = np.unique(lon, return_inverse=True)
-    
-#     if spa_dim:
+class ToyData2D(object):
+    def __init__(self, num_points=25, func='custom1', random_state=123):
+
+        self.num_points = num_points
+        self.func = func
+        self.rng = check_random_state(random_state)
+
+        self.x11_noise = 0.01
+        self.x12_noise = 0.05
+        self.x21_noise = 0.02
+        self.x22_noise = 0.02
+
+        # choose the coefficients for the variables
+        self.k11 = 0.5
+        self.k12 = 0.9
+        self.k2 = 0.0
+
+        self.figure_path = '/home/emmanuel/projects/2019_sakame/reports/figures/demos/gpr/'
+
+    def regress_f(self):
+
+        # Initialize randomization
+
+        if self.func == 'custom1':
+
+            x1_a = np.linspace(-20, 20, self.num_points)
+            x1_a += self.rng.normal(scale=self.x11_noise, size=x1_a.shape)
+            x2_a = np.linspace(-20, 20, self.num_points)
+            x2_a += self.rng.normal(scale=self.x21_noise, size=x2_a.shape)
+
+            B1, B2 = np.meshgrid(x1_a, x2_a, indexing='xy')
+            self.x1 = B1.flatten()
+            self.x2 = B2.flatten()
+            y = self.k11 * self.x1 + self.k2 * self.x2
+
+        elif self.func == 'custom2':
+            x11_a = np.linspace(-20, 0, round(self.num_points / 2))
+            x11_a += self.rng.normal(scale=self.x11_noise, size=x11_a.shape)
+
+            x12_a = np.linspace(0, 20, self.num_points - round(self.num_points
+                                                               / 2))
+            x12_a += self.rng.normal(scale=self.x12_noise, size=x12_a.shape)
+
+            x1_a = np.hstack((x11_a, x12_a))
+
+            x2_a = np.linspace(-20, 20, self.num_points)
+            x2_a += self.rng.normal(scale=self.x21_noise, size=x2_a.shape)
+
+            B11, B21 = np.meshgrid(x11_a, x2_a, indexing='xy')
+            B12, B22 = np.meshgrid(x12_a, x2_a, indexing='xy')
+
+            self.x11 = B11.flatten()
+            self.x12 = B12.flatten()
+            self.x1 = np.hstack((self.x11, self.x12))
+            self.x21 = B21.flatten()
+            self.x22 = B22.flatten()
+            self.x2 = np.hstack((self.x21, self.x22))
+            y = np.hstack((self.k11 * self.x11, self.k12 * self.x12)) + \
+                self.k2 * self.x2
+
+        elif self.func == 'custom3':
+            x11_a = np.linspace(-20, 20, self.num_points)
+            x11_a += self.rng.normal(scale=self.x11_noise, size=x11_a.shape)
+
+            x12_a = np.linspace(-20, 20, self.num_points)
+            x12_a += self.rng.normal(scale=self.x12_noise, size=x12_a.shape)
+
+            x1_a = np.hstack((x11_a, x12_a))
+
+            x21_a = np.linspace(-20, 0, round(self.num_points / 2))
+            x21_a += self.rng.normal(scale=self.x21_noise, size=x21_a.shape)
+
+            x22_a = np.linspace(0, 20, self.num_points - round(self.num_points
+                                                               / 2))
+            x22_a += self.rng.normal(scale=self.x22_noise, size=x22_a.shape)
+
+            x2_a = np.hstack((x21_a, x22_a))
+
+            B11, B21 = np.meshgrid(x11_a, x22_a, indexing='xy')
+            B12, B22 = np.meshgrid(x12_a, x21_a, indexing='xy')
+
+            self.x11 = B11.flatten()
+            self.x12 = B12.flatten()
+            self.x1 = np.hstack((self.x11, self.x12))
+            self.x21 = B21.flatten()
+            self.x22 = B22.flatten()
+            self.x2 = np.hstack((self.x21, self.x22))
+            y = np.hstack((self.k11 * self.x11, self.k12 * self.x12)) + \
+                self.k2 * self.x2
+
+        else:
+            raise ValueError('Unrecognized function.')
+
+        return np.vstack((self.x1, self.x2)).T, y
+
+    def plot_raw(self, demo=True):
+
+        if not hasattr(self, 'x1') or not hasattr(self, 'x2'):
+            X, y = self.regress_f()
+
+        fig = plt.figure(figsize=(8, 6))
+
+        ax = axes3d.Axes3D(fig)
+
+        ax.scatter3D(X[:, 0], X[:, 1], y, c='r')
+        ax.view_init(elev=50, azim=120)
+        if demo:
+            fig.suptitle(u'Regression: $Y=k_1 x_1 + k_2 x_2$', fontsize=20)
+            ax.set_xlabel('X1')
+            ax.set_ylabel('X2')
+            ax.set_zlabel('Y')
+            plt.show()
+        else:
+            save_name = f'raw_{self.func}'
+            fig.savefig(self.figure_path + save_name + '.png', transparent=True)
+
         
-#         n_dims = data.shape[1]
-#         labels_array = np.empty((lat_vals.shape[0], lon_vals.shape[0], n_dims))
-#     else:
-#         labels_array = np.empty((lat_vals.shape[0], lon_vals.shape[0]))
         
-#     labels_array.fill(np.nan)
 
-#     if spa_dim:
-#         labels_array[lat_idx, lon_idx, :] = data
-#     else:
-#         labels_array[lat_idx, lon_idx] = data
-    
-#     return labels_array, lat_vals, lon_vals
+        return fig, ax
 
+    def plot_predictions(self, X, y, demo=True):
+
+        fig = plt.figure(figsize=(8, 6))
+        ax = axes3d.Axes3D(fig)
+        ax.scatter3D(X[:, 0], X[:, 1], y, c='r')
+        ax.view_init(elev=50, azim=120)
+
+        if demo:
+            fig.suptitle(u'Regression: $Y=k_1 x_1 + k_2 x_2$', fontsize=20)
+            ax.set_xlabel('X1')
+            ax.set_ylabel('X2')
+            ax.set_zlabel('Y')
+            plt.show()
+        else:
+            save_name = f'pred_{self.func}'
+            fig.savefig(self.figure_path + save_name + '.png', transparent=True)
+        return None
+
+    def plot_sensitivity(self, X, y, derX, demo=True):
+
+        colormap = LinearSegmentedColormap.from_list("MyCmapName",
+                                                     ["b", "r", "y"]) 
+        colorbars = []
+        colorbars.append(derX[:, 0]**2)
+        colorbars.append(derX[:, 1]**2)
+        colorbars.append(derX[:, 0]**2 + (derX[:, 1]**2))
+
+        names = [
+            'xder',
+            'yder',
+            'xyder'
+        ]
+
+        # get max and min values for colorbar plots
+        vmax = max([max_val.max() for max_val in colorbars])
+        vmin = min([min_val.min() for min_val in colorbars])
+
+        for iteration in range(3):
+
+
+            fig = plt.figure(figsize=(8, 6))
+            ax = axes3d.Axes3D(fig)
+            points = ax.scatter3D(
+                X[:, 0], X[:, 1], y, s=10,
+                cmap=colormap, c=colorbars[iteration],
+                vmin=vmin, vmax=vmax
+            )
+            ax.view_init(elev=50, azim=120)
+            fig.colorbar(points, shrink=0.5, aspect=10)
+
+            if demo:
+                # fig.suptitle(u'Regression: $Y=k_1 x_1 + k_2 x_2$', fontsize=20)
+                ax.set_xlabel('X1')
+                ax.set_ylabel('X2')
+                ax.set_zlabel('Y')
+                plt.show()
+            else:
+                save_name = f'{names[iteration]}_{self.func}'
+                fig.savefig(self.figure_path + save_name + '.png', transparent=True)
+
+        return None
 
 def get_3dgrid(data, lat, lon, old_lat, old_lon):
     
     points = np.vstack((lat, lon)).T
-#     print(points.shape, data.shape)
 
     lat_vals,lat_idx = np.unique(lat, return_inverse=True)
     lon_vals, lon_idx = np.unique(lon, return_inverse=True)

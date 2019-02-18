@@ -1,8 +1,8 @@
 import numpy as np 
 
 
-class GPRBFDerivative(object):
-    def __init__(self, sklearn_model, model='krr'):
+class RBFDerivative(object):
+    def __init__(self, sklearn_model, model='gpr'):
 
         # Extract the parameters from the model
         if model is 'gpr':
@@ -78,7 +78,7 @@ class GPRBFDerivative(object):
         # Summarize information
         if method is 'abs':
             np.abs(derivative, derivative)
-        elif method is 'dim':
+        elif method is 'square':
             np.square(derivative, derivative)
         else:
             raise ValueError(f"Unrecognized method '{method}'for sensitivity.")

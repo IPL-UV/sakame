@@ -2,7 +2,51 @@ import numpy as np
 from data.make_dataset import ToyData
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import WhiteKernel, RBF 
+from models.derivatives import RBFDerivative
 
+
+class DemoGP(object):
+    def __init__(self):
+
+        pass
+
+    def train(self, X, y):
+
+        # Initialize Kernel
+        kernel = RBF() + WhiteKernel()
+
+        # Initialize GP Model
+        self.model = GaussianProcessRegressor(
+            kernel=kernel, 
+            n_restarts_optimizer=5,
+            normalize_y=True
+        )
+
+        # Fit Model to Data
+        self.model.fit(X, y)
+
+        return None
+
+    def get_predictions(self, X, return_std=True):
+
+        # Get Predictions
+        return self.model.predict(X, return_std=return_std)
+
+    def get_derivatives(self, X):
+
+        # Initialize RBF Derivative Model
+        return RBFDerivative(self.model, model='gpr')(X)
+
+
+    def get_sensitivity(self, X):
+
+        # Initialize RBF Derivative Model
+        return RBFDerivative(self.model, model='gpr').sensitivity(X)
+
+    def get_point_sensitivity(self, X, method='abs'):
+
+        # Initialize RBF Derivative Model
+        return RBFDerivative(self.model, model='gpr').point_sensitivity(X, method=method)
 
 class DemoGP1D(object):
     def __init__(self, demo_func='sin', noise=0.0, degree=2, num_points=500,
