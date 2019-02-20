@@ -47,13 +47,19 @@ class RBFDerivative(object):
 
         return self
 
-    def __call__(self, X):
+    def __call__(self, X, n_derivative=1):
 
         # Calculate kernel
         K = self.kernel(X, self.x_train)
         
         # Calculate the derivative for RBF kernel
-        return rbf_derivative(self.x_train, X, K, self.weights, self.length_scale)
+        return rbf_derivative(
+            self.x_train, 
+            X, 
+            K, 
+            self.weights, 
+            self.length_scale, 
+            n_derivative=n_derivative)
 
     def sensitivity(self, X, method='abs'):
         
@@ -86,7 +92,7 @@ class RBFDerivative(object):
         return np.mean(derivative, axis=1)
 
 
-def rbf_derivative(x_train, x_function, K, weights, length_scale):
+def rbf_derivative(x_train, x_function, K, weights, length_scale=1.0, n_derivative=1):
     """The Derivative of the RBF kernel. It returns the 
     derivative as a 2D matrix.
     
@@ -100,7 +106,9 @@ def rbf_derivative(x_train, x_function, K, weights, length_scale):
     
     weights : array, (ntrain_samples)
     
-    length_scale : float,
+    length_scale : float, default=1.0
+    
+    n_derivatve : int, {1, 2} (default=1)
     
     Return
     ------
@@ -111,15 +119,29 @@ def rbf_derivative(x_train, x_function, K, weights, length_scale):
     n_test, n_dims = x_function.shape
 
     derivative = np.zeros(shape=x_function.shape)
+    
+    theta = - 1 / length_scale ** 2
+    
+    if int(n_derivative) == 1:
+        for itest in range(n_test):
+            t1 = (np.expand_dims(x_function[itest, :], axis=0) - x_train).T
+            t2 = K[itest, :] * weights.squeeze()
+            t3 = np.dot(t1, t2)
 
-    for itest in range(n_test):
-        t1 = (np.expand_dims(x_function[itest, :], axis=0) - x_train).T
-        t2 = K[itest, :] * weights.squeeze()
-        t3 = np.dot(t1, t2)
+            derivative[itest, :] = t3
+            
+    elif int(n_derivative) == 2:
+        for itest in range(n_test):
+            t1 = (np.expand_dims(x_function[itest, :], axis=0) - x_train).T
+            t1 = theta * (t1**2 - 1)
+            t2 = K[itest, :] * weights.squeeze()
+            
+            derivative[itest, :] = np.dot(t1, t2)
+            
+    else:
+        raise ValueError(f"Unrecognized n_derivative: {n_derivative}.")
 
-        derivative[itest, :] = t3
-
-    derivative *= - 1 / length_scale**2
+    derivative *= theta
 
     return derivative
 

@@ -5,21 +5,53 @@ from sklearn.gaussian_process.kernels import WhiteKernel, RBF
 from models.derivatives import RBFDerivative
 
 
-class DemoGP(object):
+class DemoKRR(object):
     def __init__(self):
-
         pass
+
+    def train(self, X, y):
+        pass
+
+    def get_predictions(self, X):
+        pass 
+
+    def get_derivatives(self, X):
+        pass
+
+    def get_sensitivity(self, X, point=False, method='abs'):
+        if point is not None:
+            return RBFDerivative(self.model, model='gpr').point_sensitivity(X, method=method)
+
+        else:
+            return RBFDerivative(self.model, model='gpr').sensitivity(X)
+
+class DemoGP(object):
+    def __init__(self, length_scale=None, noise_variance=None,
+                 random_state=1234):
+
+        self.length_scale = length_scale 
+        self.noise_variance = noise_variance
+        self.random_state = random_state
 
     def train(self, X, y):
 
         # Initialize Kernel
-        kernel = RBF() + WhiteKernel()
+        if self.length_scale is None:
+            kernel = RBF()
+        else:
+            kernel = RBF(self.length_scale, length_scale_bounds="fixed")
+
+        if self.noise_variance is None:
+            kernel += WhiteKernel()
+        else:
+            kernel += WhiteKernel(self.noise_variance, noise_level_bounds="fixed")
 
         # Initialize GP Model
         self.model = GaussianProcessRegressor(
             kernel=kernel, 
             n_restarts_optimizer=5,
-            normalize_y=True
+            normalize_y=True,
+            random_state=self.random_state
         )
 
         # Fit Model to Data
@@ -32,11 +64,11 @@ class DemoGP(object):
         # Get Predictions
         return self.model.predict(X, return_std=return_std)
 
-    def get_derivatives(self, X):
+    def get_derivatives(self, X, n_derivative=1):
 
         # Initialize RBF Derivative Model
-        return RBFDerivative(self.model, model='gpr')(X)
-
+        return RBFDerivative(self.model, model='gpr')(X, 
+                                                      n_derivative=n_derivative)
 
     def get_sensitivity(self, X):
 
