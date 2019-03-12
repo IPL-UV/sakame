@@ -21,13 +21,14 @@ def plot_raw_variables(
         cmap = "RdBu_r"
         cbar_kwargs = {"label": "", "format": "%s"}
     else:
-        raise ValueError("Unrecognized cmap.")
+        cmap = "viridis"
+        cbar_kwargs = {"label": "", "format": "%.2f"}
 
     # Plot data
     if mean:
         fig = plt.figure(figsize=(10, 6))
         ax = fig.add_subplot(111, projection=ccrs.PlateCarree(), aspect="auto")
-        xr_data = xr_data.mean(dim="time", skipna=False)
+        xr_data = xr_data[variable].mean(dim="time", skipna=False)
         xr_data.plot.pcolormesh(
             ax=ax,
             transform=ccrs.PlateCarree(),
@@ -62,7 +63,7 @@ def plot_raw_variables(
         )
     else:
         plt.figure(figsize=(10, 10))
-        xr_data.plot.pcolormesh(
+        xr_data[variable].plot.pcolormesh(
             cmap=cmap, robust=False, x="lon", y="lat", col="time", col_wrap=3
         )
 

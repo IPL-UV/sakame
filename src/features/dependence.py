@@ -28,8 +28,8 @@ class GetXYData:
         Converts it into an array."""
 
         # Convert xarray into dataframe for variables
-        X = xarray2df(xr_data, var=self.variables[0])
-        Y = xarray2df(xr_data, var=self.variables[1])
+        X = xarray2df(xr_data, variable=self.variables[0])
+        Y = xarray2df(xr_data, variable=self.variables[1])
 
         # Merge the Two DataFrames
         var_df = X.merge(Y)
