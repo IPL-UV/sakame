@@ -1,6 +1,7 @@
 import sys
 
 sys.path.insert(0, "/home/emmanuel/code/kernellib")
+sys.path.insert(0, "/home/jovyan/work/workspace/software/kernellib")
 from kernellib.dependence import HSIC, RHSIC
 import numpy as np
 
