@@ -5,6 +5,9 @@ sys.path.insert(0, "/home/jovyan/work/workspace/software/kernellib")
 from kernellib.dependence import HSIC, RHSIC
 import numpy as np
 
+import warnings
+warnings.filterwarnings('ignore')
+
 
 class HSICDependence:
     def __init__(
