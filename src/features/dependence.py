@@ -1,15 +1,17 @@
-from py_esdc.utils import xarray2df
+# import sys
+# sys.path.insert(0, "/home/emmanuel/code/py_esdc")
+# from py_esdc.utils import xarray2df
 from sklearn.preprocessing import Normalizer
 from sklearn.model_selection import train_test_split
 import xarray as xr
 import pandas as pd
 import numpy as np
-import sys
+# import sys
 import matplotlib.pyplot as plt
 import matplotlib
 plt.style.use('ggplot')
 
-sys.path.insert(0, "/home/emmanuel/code/py_esdc")
+
 figure_path = '/home/emmanuel/projects/2019_sakame/reports/figures/dependence/'
 
 
@@ -26,13 +28,16 @@ class GetXYData:
     self.variables = variables
     self.random_state = random_state
 
-  def set_XY(self, xr_data):
+  def set_XY(self, xr_data, xr_data2=None):
     """Excepts a dataframe with the time components.
     Converts it into an array."""
-
     # Convert xarray into dataframe for variables
-    X = xarray2df(xr_data, variable=self.variables[0])
-    Y = xarray2df(xr_data, variable=self.variables[1])
+
+    if xr_data2 is None:
+      xr_data2 = xr_data
+    
+    X = xarray2df(xr_data[self.variables[0]])
+    Y = xarray2df(xr_data2[self.variables[1]])
 
     # Merge the Two DataFrames
     var_df = X.merge(Y)
@@ -196,16 +201,14 @@ def get_corr_spatial(xr_data1, xr_data2):
   for itime in times:
     X_sub = xr_data1.sel(time=itime)
     Y_sub = xr_data2.sel(time=itime)
-#         print('Subtract Mean')
+
     # Calculate Mean
     X_mean = X_sub.mean(dim=['lat', 'lon'], skipna=None)
     Y_mean = Y_sub.mean(dim=['lat', 'lon'], skipna=None)
-#         print('X_mean:', X_mean.compute().data, '; Y_mean:', Y_mean.compute().data)
 
     # Calculate Standard Deviation
     X_std = X_sub.std(dim=['lat', 'lon'])
     Y_std = Y_sub.std(dim=['lat', 'lon'])
-#         print('X_std:', X_std.compute().data, '; Y_std:', Y_std.compute().data)
 
     # Subtract Mean
 
@@ -217,8 +220,36 @@ def get_corr_spatial(xr_data1, xr_data2):
 
     # Get Correlation Coefficient
     coef = (cov / (X_std * Y_std)).mean(dim=['lat', 'lon'])
-#         print(coef.max().compute().data, coef.min().compute().data)
     coef['time'] = itime
-#         print(coef)
     corr_coef.append(coef)
   return xr.concat(corr_coef, dim='time')
+
+
+def xarray2df(xr_data: xr.DataArray) -> pd.DataFrame:
+    """Converts an xarray dataset from (lat,lon,time)
+    to a pandas dataframe of (lat, lon, time, data). Useful
+    for machine learning methods but can be more inefficient 
+    due to repeated storage of redundant coordinates.
+    
+    Parameters
+    ----------
+    xr_data : xr.DataArray object ( l x w x h )
+        coordinates = ['lat', 'lon', 'time']
+    
+    Returns
+    -------
+    pd.DataFrame : ((l x w x h) x columns)
+        columns = ['lat', 'lon', 'time', 'data']
+        
+    Example
+    -------
+    >> dataset = xr.DataArray(...)
+    >> df = xarray2df(dataset)
+    """
+    # Convert to Dataframe
+    xr_df = xr_data.to_dataframe()
+
+    # Reset Index to simple matrix
+    xr_df = xr_df.reset_index().drop_duplicates()
+
+    return xr_df
