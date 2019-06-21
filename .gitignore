@@ -96,3 +96,7 @@ target/
 
 # Slurm Scripts
 /src/experiments/slurm_sampling.sh
+
+# H5
+.h5 
+.hf
