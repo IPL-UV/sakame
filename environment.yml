@@ -3,6 +3,7 @@ channels:
 - defaults
 - conda-forge
 dependencies:
+- python=3.7
 - numpy
 - numba
 - numexpr
@@ -11,7 +12,15 @@ dependencies:
 - matplotlib
 - xarray
 - h5py
+- ipykernel
 - pandas
 - cartopy
-- dask
-- netcdf4
+- pip
+- pip:
+    - zarr
+    - jax
+    - jaxlib
+    - black
+    - mypy
+    - flake8
+    - isort
