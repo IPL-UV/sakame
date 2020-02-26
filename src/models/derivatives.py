@@ -5,9 +5,44 @@ from sklearn.base import BaseEstimator
 
 
 class SVMDerivative:
+    """A class to take the derivatives of different functions for
+    the SVM classifier with a tanh() function and RBF kernel.
+
+    Parameters
+    ----------
+    svm_model : BaseEstimator
+        a trained svm model from the sklearn library
+
+    mask_param : float, default=1.0
+        a parameter to determine the smoothness of the tanh function.
+    
+    Attributes
+    ----------
+    weights : np.ndarray, (N x 1)
+        the weights (alpha value) for the trained svm model
+    
+    bias : float
+        the bias (b) parameter for the trained svm model
+
+    support_vectors : np.ndarray, (N x 1)
+        the support vectors (training points) for the svm model
+
+    gamma : float
+        the gamma parameter for the RBF kernel of the svm model
+
+    y_labels : np.ndarray, (N x 1)
+        the y values for the svm model
+
+    Example
+    -------
+    >> svm_der = SVMDerivative(svm_model, 1.0)
+    >> x_ders = svm_derivative.full_derivative(X)
+    """
+
     def __init__(self, svm_model: BaseEstimator, mask_param: float = 1.0):
 
         self._extract_svm_params(svm_model)
+        self.mask_param = mask_param
 
     def decision_derivative(self, X: np.ndarray) -> np.ndarray:
 
@@ -79,12 +114,11 @@ class SVMDerivative:
         """
         return rbf_kernel(X, self.support_vectors, gamma=self.gamma)
 
-    def _extract_svm_params(self, svm_model: BaseEstimator) -> self:
+    def _extract_svm_params(self, svm_model: BaseEstimator):
 
         # import all important variables
         self.weights = svm_model.dual_coef_.T
         self.bias = svm_model.intercept_
-        self.mask_param = mask_param
         self.support_vectors = svm_model.support_vectors_
         self.gamma = svm_model.gamma
         self.y_labels = svm_model.support_
@@ -663,8 +697,32 @@ def svm_full_derivative(
 
 
 def main():
+    from data.make_dataset import get_class_data
+
+    @dataclass
+    class DemoParams:
+        dataset = "circles"
+        num_points = 200
+        num_training = 0.5
+        noise_level = 0.01
+        plots = "demo"
+        random_state = None
+        n_jobs = -1
+        verbose = 1
+        mask_param = 1.0
+        grid_points = 100
+
+    Xdata, ydata = get_class_data(
+        num_points=DemoParams.num_points,
+        num_training=DemoParams.num_training,
+        noise=DemoParams.noise_level,
+        random_state=DemoParams.random_state,
+        data_set=DemoParams.dataset,
+    )
+
+    x = 2
     pass
 
 
 if __name__ == "__main__":
-    pass
+    main()
