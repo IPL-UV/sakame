@@ -44,6 +44,21 @@ class SVMDerivative:
         self._extract_svm_params(svm_model)
         self.mask_param = mask_param
 
+    def __call__(self, X: np.ndarray) -> np.ndarray:
+
+        X_der = svm_full_derivative(
+            X_test=X,
+            weights=self.weights,
+            support_vectors=self.support_vectors,
+            y_labels=self.y_labels,
+            K=self._calculate_kernel(X),
+            gamma=self.gamma,
+            bias=self.bias,
+            mask_param=self.mask_param,
+        )
+
+        return X_der
+
     def decision_derivative(self, X: np.ndarray) -> np.ndarray:
 
         # calculate derivative for decision function
@@ -94,19 +109,7 @@ class SVMDerivative:
         return X_der
 
     def full_derivative(self, X: np.ndarray) -> np.ndarray:
-
-        X_der = svm_full_derivative(
-            X_test=X,
-            weights=self.weights,
-            support_vectors=self.support_vectors,
-            y_labels=self.y_labels,
-            K=self._calculate_kernel(X),
-            gamma=self.gamma,
-            bias=self.bias,
-            mask_param=self.mask_param,
-        )
-
-        return X_der
+        return self.__call__(self, X)
 
     def _calculate_kernel(self, X: np.ndarray) -> np.ndarray:
         """Private function to calculate the kernel matrix for the
@@ -122,6 +125,43 @@ class SVMDerivative:
         self.support_vectors = svm_model.support_vectors_
         self.gamma = svm_model.gamma
         self.y_labels = svm_model.support_
+        return self
+
+
+class GPRDerivative:
+    def __init__(self, gpr_model: BaseEstimator) -> None:
+
+        self._extract_gp_parameters(gpr_model)
+
+    def __call__(self, X: np.ndarray, n_derivative: int = 1) -> np.ndarray:
+
+        # Calculate kernel
+        print(X.shape, self.x_train.shape)
+        K = self.kernel(X, self.x_train)
+
+        # Calculate the derivative for RBF kernel
+        return gpr_rbf_derivative(
+            x_train=self.x_train,
+            x_function=X,
+            K=K,
+            weights=self.weights,
+            length_scale=self.length_scale,
+            constant=self.constant,
+            n_derivative=n_derivative,
+        )
+
+    def _extract_gp_parameters(self, gpr_model: BaseEstimator):
+
+        # extra gpr model parameters
+        self.weights = gpr_model.alpha_
+        self.x_train = gpr_model.X_train_
+
+        # Extract RBF kernel and RBF kernel parameters
+        self.kernel = gpr_model.kernel_
+        self.constant = self.kernel.get_params()["k1__k1__constant_value"]
+        self.length_scale = self.kernel.get_params()["k1__k2__length_scale"]
+        self.noise = self.kernel.get_params()["k2__noise_level"]
+
         return self
 
 
@@ -217,7 +257,15 @@ class RBFDerivative(object):
         return np.mean(derivative, axis=1)
 
 
-def rbf_derivative(x_train, x_function, K, weights, length_scale=1.0, n_derivative=1):
+def gpr_rbf_derivative(
+    x_train,
+    x_function,
+    K,
+    weights,
+    length_scale=1.0,
+    constant: float = 1.0,
+    n_derivative=1,
+):
     """The Derivative of the RBF kernel. It returns the 
     derivative as a 2D matrix.
     
@@ -245,7 +293,7 @@ def rbf_derivative(x_train, x_function, K, weights, length_scale=1.0, n_derivati
 
     derivative = np.zeros(shape=x_function.shape)
 
-    theta = -1 / length_scale ** 2
+    theta = constant * (-1 / length_scale ** 2)
 
     if int(n_derivative) == 1:
         for itest in range(n_test):
@@ -271,7 +319,6 @@ def rbf_derivative(x_train, x_function, K, weights, length_scale=1.0, n_derivati
     return derivative
 
 
-# @numba.njit
 def svm_rbf_derivative_loops(
     X_test: np.ndarray,
     support_vectors: np.ndarray,
@@ -697,30 +744,6 @@ def svm_full_derivative(
 
 
 def main():
-    from data.make_dataset import get_class_data
-
-    @dataclass
-    class DemoParams:
-        dataset = "circles"
-        num_points = 200
-        num_training = 0.5
-        noise_level = 0.01
-        plots = "demo"
-        random_state = None
-        n_jobs = -1
-        verbose = 1
-        mask_param = 1.0
-        grid_points = 100
-
-    Xdata, ydata = get_class_data(
-        num_points=DemoParams.num_points,
-        num_training=DemoParams.num_training,
-        noise=DemoParams.noise_level,
-        random_state=DemoParams.random_state,
-        data_set=DemoParams.dataset,
-    )
-
-    x = 2
     pass
 
 
