@@ -1,6 +1,94 @@
 import numpy as np
 import numba
 from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.base import BaseEstimator
+
+
+class SVMDerivative:
+    def __init__(self, svm_model: BaseEstimator, mask_param: float = 1.0):
+
+        self._extract_svm_params(svm_model)
+
+    def decision_derivative(self, X: np.ndarray) -> np.ndarray:
+
+        # calculate derivative for decision function
+        X_der = svm_decision_derivative(
+            X_test=X,
+            weights=self.weights,
+            K=self._calculate_kernel(X),
+            bias=self.bias,
+            mask_param=self.mask_param,
+        )
+        return X_der
+
+    def objective_derivative(self, X: np.ndarray) -> np.ndarray:
+
+        X_der = svm_obj_derivative(
+            X_test=X,
+            weights=self.weights,
+            K=self._calculate_kernel(X),
+            bias=self.bias,
+            mask_param=self.mask_param,
+        )
+
+        return X_der
+
+    def mask_derivative(self, X: np.ndarray) -> np.ndarray:
+
+        X_der = svm_mask_derivative(
+            X_test=X,
+            weights=self.weights,
+            K=self._calculate_kernel(X),
+            bias=self.bias,
+            mask_param=self.mask_param,
+        )
+
+        return X_der
+
+    def kernel_derivative(self, X: np.ndarray) -> np.ndarray:
+
+        X_der = svm_rbf_derivative(
+            X_test=X,
+            weights=self.weights,
+            support_vectors=self.support_vectors,
+            y_labels=self.y_labels,
+            K=self._calculate_kernel(X),
+            gamma=self.gamma,
+        )
+
+        return X_der
+
+    def full_derivative(self, X: np.ndarray) -> np.ndarray:
+
+        X_der = svm_full_derivative(
+            X_test=X,
+            weights=self.weights,
+            support_vectors=self.support_vectors,
+            y_labels=self.y_labels,
+            K=self._calculate_kernel(X),
+            gamma=self.gamma,
+            bias=self.bias,
+            mask_param=self.mask_param,
+        )
+
+        return X_der
+
+    def _calculate_kernel(self, X: np.ndarray) -> np.ndarray:
+        """Private function to calculate the kernel matrix for the
+        new test points
+        """
+        return rbf_kernel(X, self.support_vectors, gamma=self.gamma)
+
+    def _extract_svm_params(self, svm_model: BaseEstimator) -> self:
+
+        # import all important variables
+        self.weights = svm_model.dual_coef_.T
+        self.bias = svm_model.intercept_
+        self.mask_param = mask_param
+        self.support_vectors = svm_model.support_vectors_
+        self.gamma = svm_model.gamma
+        self.y_labels = svm_model.support_
+        return self
 
 
 class RBFDerivative(object):
