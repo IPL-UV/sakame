@@ -6,7 +6,7 @@ from scipy.stats import randint as sp_randint
 import numpy as np
 
 
-def svm_naive(X_train, y_train, X_test, n_grid: np.ndarray, **kwargs):
+def svm_naive(X_train, y_train, n_grid: np.ndarray, **kwargs):
     """ Naive implementation of the Support Vector Machine
       classifcation function in the scikit-learn package. It
       returns all of the necessary things needed to analyze the
@@ -68,20 +68,5 @@ def svm_naive(X_train, y_train, X_test, n_grid: np.ndarray, **kwargs):
     # run cross validation model
     cv_model.fit(X_train, y_train)
 
-    # predict
-    y_pred = cv_model.predict(X_test)
-
-    # extract necessary parameters
-    params = {
-        "C": cv_model.best_estimator_.C,
-        "support_vectors": cv_model.best_estimator_.support_vectors_,
-        "weights": np.squeeze(cv_model.best_estimator_.dual_coef_[0].T),
-        "gamma": cv_model.best_params_["gamma"],
-        "bias": cv_model.best_estimator_.intercept_,
-        "y_labels": cv_model.best_estimator_.support_,
-        "decision_function": cv_model.best_estimator_.decision_function,
-        "svm_model": cv_model.best_estimator_,
-    }
-
-    return y_pred, cv_model.best_estimator_
+    return cv_model.best_estimator_
 
