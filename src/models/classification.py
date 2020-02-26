@@ -6,62 +6,63 @@ from scipy.stats import randint as sp_randint
 import numpy as np
 
 
-def svm_naive(X_train, y_train, X_test, n_jobs=1, verbose=None, random_state=None):
+def svm_naive(X_train, y_train, X_test, n_grid: np.ndarray, **kwargs):
     """ Naive implementation of the Support Vector Machine
-    classifcation function in the scikit-learn package. It
-    returns all of the necessary things needed to analyze the
-    results and possibly reuse the trained SVC model.
+      classifcation function in the scikit-learn package. It
+      returns all of the necessary things needed to analyze the
+      results and possibly reuse the trained SVC model.
 
-    Parameters
-    ----------
-    X_train : array, (N x D)
-          an array of training points
+      Parameters
+      ----------
+      X_train : array, (N x D)
+            an array of training points
 
-    y_train : array, (N x 1)
-          an array of labels for the training points
+      y_train : array, (N x 1)
+            an array of labels for the training points
 
-    X_test : array, (M x D)
-          an array of testing points
+      X_test : array, (M x D)
+            an array of testing points
 
-    n_jobs : int, default = 1
-          the number of cores to use when doing the grid
-          search
+      kwargs : dict
+            a dictionary of keyword arguments to use for the gridsearch. 
+            Please see 
 
-    verbose : int, default = None
-          prints statements to dictate each step of the code
-          (good for debugging)
 
-    random_state : int, bool (default : None)
-        the random state for reproducibility.
+      Returns
+      -------
+      y_pred : array, (M x 1)
+            an array of predictions for the testing points
 
-    Returns
-    -------
-    y_pred : array, (M x 1)
-          an array of predictions for the testing points
+      model : class,
+            a class of the SVMModel.
 
-    model : class,
-          a class of the SVMModel.
-
-    Information
-    -----------
-    Author: J. Emmanuel Johnson
-    Email : jej2744@rit.edu
-          : emanjohnson91@gmail.com
-    Date  : 11th April, 2017
-    """
+      Information
+      -----------
+      Author: J. Emmanuel Johnson
+      Email : jej2744@rit.edu
+            : emanjohnson91@gmail.com
+      Date  : 11th April, 2017
+      """
 
     # initialize the SVC model with the rbf kernel
-    svm_model = SVC(kernel="rbf", random_state=random_state)
+    svm_model = SVC(
+        kernel=kwargs.get("kernel", "rbf"), random_state=kwargs.get("random_state", 123)
+    )
 
     # perform cross validation
     # define the parameter space for C and Gamma
     param_grid = {
-        "C": np.linspace(0.01, 20, num=20),
-        "gamma": np.linspace(0.01, 20, num=20),
+        "C": np.linspace(0.01, 20, num=n_grid),
+        "gamma": np.linspace(0.01, 20, num=n_grid),
     }
 
     cv_model = GridSearchCV(
-        estimator=svm_model, param_grid=param_grid, cv=5, n_jobs=n_jobs, verbose=verbose
+        estimator=svm_model,
+        param_grid=param_grid,
+        cv=5,
+        n_jobs=kwargs.get("n_jobs", -1),
+        verbose=kwargs.get("verbose", 0),
+        **kwargs
     )
 
     # run cross validation model
@@ -83,3 +84,4 @@ def svm_naive(X_train, y_train, X_test, n_jobs=1, verbose=None, random_state=Non
     }
 
     return y_pred, cv_model.best_estimator_
+

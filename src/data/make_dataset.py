@@ -10,7 +10,12 @@ from sklearn.utils import check_random_state
 from matplotlib import pyplot as plt
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from mpl_toolkits.mplot3d import axes3d
-from sklearn.datasets import make_moons, make_circles, make_blobs, make_classification
+from sklearn.datasets import (
+    make_moons,
+    make_circles,
+    make_blobs,
+    make_classification,
+)
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
@@ -585,3 +590,41 @@ def window_xy(array, window_size=7):
 
                 yield x, y, lat, lon
 
+
+def make_circle_ellipse(num_points=100, noise=0.1, verbose=None, seed=0):
+
+    # fix the random state
+    generator = check_random_state(seed=seed)
+
+    phi = np.linspace(0, 2 * np.pi, num_points // 2 + 1)[:-1]
+    # theta = np.linspace(0, np.pi, num_points // 2 + 1)[:-1]
+    radii_x = 4
+    radii_y = 1
+    outer_circ_x = radii_x * np.cos(phi) * np.sin(phi)
+    outer_circ_y = radii_y * np.sin(phi) * np.sin(phi)
+    inner_circ_x = np.cos(phi) * 0.3
+    inner_circ_y = np.sin(phi) * 0.3 + 0.5
+
+    X = np.vstack(
+        (np.append(outer_circ_x, inner_circ_x), np.append(outer_circ_y, inner_circ_y))
+    ).T
+
+    y = np.hstack(
+        [
+            np.zeros(num_points // 2, dtype=np.intp),
+            np.ones(num_points // 2, dtype=np.intp),
+        ]
+    )
+
+    if noise is not None:
+        X += generator.normal(scale=noise, size=X.shape)
+
+    if verbose:
+        print("Shape of Outer Circle X: ", np.shape(outer_circ_x))
+        print("Shape of Outer Circle Y: ", np.shape(outer_circ_y))
+        print("Shape of Inner Circle X: ", np.shape(inner_circ_x))
+        print("Shape of Inner Circle Y: ", np.shape(inner_circ_y))
+        print("Shape of append X: ", np.shape(np.append(outer_circ_x, inner_circ_x)))
+        print("Shape of append Y: ", np.shape(np.append(outer_circ_y, inner_circ_y)))
+
+    return X, y
