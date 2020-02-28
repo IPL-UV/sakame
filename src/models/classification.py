@@ -4,9 +4,10 @@ from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
 from scipy.stats import randint as sp_randint
 import numpy as np
+from sklearn.base import BaseEstimator
 
 
-def svm_naive(X_train, y_train, n_grid: np.ndarray, **kwargs):
+def svm_naive(X_train, y_train, n_grid: int = 20, **kwargs) -> BaseEstimator:
     """ Naive implementation of the Support Vector Machine
       classifcation function in the scikit-learn package. It
       returns all of the necessary things needed to analyze the
@@ -20,18 +21,16 @@ def svm_naive(X_train, y_train, n_grid: np.ndarray, **kwargs):
       y_train : array, (N x 1)
             an array of labels for the training points
 
-      X_test : array, (M x D)
-            an array of testing points
+      n_grid : int, default=100
+            the number of grid points to use for the parameter grid
 
       kwargs : dict
             a dictionary of keyword arguments to use for the gridsearch. 
-            Please see 
-
+            Please see the sklearn.svm.SVC function for more details
+            on the available arguments
 
       Returns
       -------
-      y_pred : array, (M x 1)
-            an array of predictions for the testing points
 
       model : class,
             a class of the SVMModel.
@@ -59,7 +58,6 @@ def svm_naive(X_train, y_train, n_grid: np.ndarray, **kwargs):
     cv_model = GridSearchCV(
         estimator=svm_model,
         param_grid=param_grid,
-        cv=5,
         n_jobs=kwargs.get("n_jobs", -1),
         verbose=kwargs.get("verbose", 0),
         **kwargs
