@@ -136,8 +136,9 @@ class GPRDerivative:
     def __call__(self, X: np.ndarray, n_derivative: int = 1) -> np.ndarray:
 
         # Calculate kernel
-        print(X.shape, self.x_train.shape)
+        # print(X.shape, self.x_train.shape)
         K = self.kernel(X, self.x_train)
+        # print(K.shape)
 
         # Calculate the derivative for RBF kernel
         return gpr_rbf_derivative(
