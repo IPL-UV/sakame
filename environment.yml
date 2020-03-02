@@ -9,12 +9,17 @@ dependencies:
 - numexpr
 - scipy
 - scikit-learn
+- scikit-image
 - matplotlib
-- xarray
 - h5py
 - ipykernel
 - pandas
+# Geoprocessing libraries
+- xarray
 - cartopy
+- conda-forge::xesmf
+- shapely
+- geopandas
 - pip
 - pip:
     - zarr
