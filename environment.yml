@@ -16,10 +16,15 @@ dependencies:
 - pandas
 # Geoprocessing libraries
 - xarray
-- cartopy
 - conda-forge::xesmf
 - shapely
 - geopandas
+- rasterio
+- affine
+# Plotting Libraries
+- pyviz::hvplot
+- matplotlib
+- cartopy
 - pip
 - pip:
     - zarr
