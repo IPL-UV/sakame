@@ -1,30 +1,72 @@
 import xarray as xr
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from typing import Tuple
+from typing import Tuple, Union, Optional
+import xarray as xr
+from dataclasses import dataclass
 
 
-def add_drought_events(xr_data: xr.Dataset) -> xr.Dataset:
-    """Adds the Russian drought event within the dataset as a 
-    new variable.
+@dataclass
+class DefaultParams:
+    variables = ["gross_primary_productivity", "root_moisture"]
+    time_slices = (str(2008), str(2010))
+    region = "eastern_europe"
 
-    Parameters
-    ----------
-    xr_data : xr.Dataset
-    
-    Returns
-    -------
-    xr_data : xr.Dataset
-    """
 
-    # create empty variable
-    xr_data["drought"] = xr.full_like(xr_data.gross_primary_productivity, fill_value=0)
+def subset_time(
+    xr_data: Union[xr.Dataset, xr.DataArray],
+    time_slice: Tuple[str, str] = DefaultParams.time_slices,
+) -> Union[xr.Dataset, xr.DataArray]:
 
-    # Get time coordinates
-    times = xr_data.sel(time=slice("June-2010", "August-2010")).coords["time"]
+    # Extract time period
+    xr_data = xr_data.sel(
+        time=slice(time_slice[0], time_slice[1])
+    )  # .resample(time='1MS').mean(dim='time', skipna=True)
 
-    # make drought regions 1
-    xr_data["drought"].loc[dict(time=times)] = 1
+    return xr_data
+
+
+def extract_region(
+    xr_data: Union[xr.Dataset, xr.DataArray], region: str = DefaultParams.region
+) -> Union[xr.Dataset, xr.DataArray]:
+
+    # Extract subregion of russia
+    if region == "europe":
+        xr_data = xr_data.sel(lat=slice(71.5, 35.5), lon=slice(-18.0, 60.0)).load()
+    elif region == "russian":
+        xr_data = xr_data.sel(lat=slice(66.75, 48.25), lon=slice(28.75, 60.25)).load()
+    elif region == "eastern_europe":
+        xr_data = xr_data.sel(lat=slice(65, 43), lon=slice(20, 60.25)).load()
+    else:
+        raise ValueError(f"Unrecognized region given: {region}")
+
+    return xr_data
+
+
+def add_drought_mask(xr_data: xr.Dataset,):
+
+    DROUGHT_PATH = "/media/disk/databases/DROUGHT/eastern_europe/"
+
+    # open drought data
+    drought_xr = xr.open_dataset(DROUGHT_PATH + "AD_europe_5D.nc").isel(time=2).LST
+
+    # Hack (turn into dataframe, easier to manipulate)
+    drought_df = (
+        drought_xr.to_dataframe()  # convert to dataframe
+        .dropna()  # Drop NANs
+        .drop(columns={"time"})  # Drop time columns
+        .drop_duplicates()  # Remove Duplicates
+        .reset_index()  # remove lat, lon index
+    )
+    drought_df["LST"] = 1.0  # values of LST are irrelevant
+
+    # convert to geopandas df
+    drought_df = gpd.GeoDataFrame(
+        drought_df, geometry=gpd.points_from_xy(drought_df.lon, drought_df.lat)
+    )
+
+    # rasterize geometry to xarray dataset, add as mask
+    xr_data.coords["drought"] = rasterize(drought_df["geometry"], xr_data)
 
     return xr_data
 

@@ -12,7 +12,9 @@ from sklearn.utils import gen_batches
 from sklearn.metrics import r2_score, mean_absolute_error
 
 
-def svm_naive(X_train, y_train, n_grid: int = 20, **kwargs) -> BaseEstimator:
+def svm_naive(
+    X_train, y_train, n_grid: int = 20, class_weight=None, **kwargs
+) -> BaseEstimator:
     """ Naive implementation of the Support Vector Machine
       classifcation function in the scikit-learn package. It
       returns all of the necessary things needed to analyze the
@@ -49,9 +51,7 @@ def svm_naive(X_train, y_train, n_grid: int = 20, **kwargs) -> BaseEstimator:
       """
 
     # initialize the SVC model with the rbf kernel
-    svm_model = SVC(
-        kernel=kwargs.get("kernel", "rbf"), random_state=kwargs.get("random_state", 123)
-    )
+    svm_model = SVC(kernel="rbf", random_state=123, class_weight=class_weight)
 
     # perform cross validation
     # define the parameter space for C and Gamma
@@ -98,6 +98,7 @@ def predict_batches(
         mask_derivatives.append(der_model.mask_derivative(x_batch))
         kernel_derivatives.append(der_model.kernel_derivative(x_batch))
         derivatives.append(der_model(x_batch))
+        predictions.append(ypred)
 
     # concatenate lists to arrays
     predictions = np.concatenate(predictions)
