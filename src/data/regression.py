@@ -1,13 +1,13 @@
 import xarray as xr
 
 
-def load_esdc():
+def load_esdc(variable: str = "gross_primary_productivity"):
 
     filename = "/media/disk/databases/ESDC/esdc-8d-0.25deg-1x720x1440-2.0.0.zarr"
 
     datacube = xr.open_zarr(filename)
 
-    datacube = datacube[["gross_primary_productivity", "land_surface_temperature"]]
+    datacube = datacube[variable]
 
     # Extract time period
     datacube = datacube.sel(
