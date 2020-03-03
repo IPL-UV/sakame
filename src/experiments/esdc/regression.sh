@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #SBATCH --nodes=2                                   # 2 node
-#SBATCH --ntasks=2                                  # 1 task per node
+#SBATCH --ntasks=2                                  # 2 tasks
 #SBATCH --tasks-per-node=1                          # 1 task per node
 #SBATCH --cpus-per-task=16                          # 1 core (cpu) per task
 #SBATCH --exclude=nodo17                            # Don't use the GPU nodes for processing
-#SBATCH --job-name=sakame_sampling                          # Job Name
+#SBATCH --job-name=sakame_sampling                  # Job Name
 #SBATCH --output="/home/emmanuel/projects/2019_sakame/src/experiments/esdc/logs/sakame_sampling.log"        # Path + Log file
 #SBATCH --error="/home/emmanuel/projects/2019_sakame/src/experiments/esdc/logs/sakame_sampling.err"         # Path + Error File
 
