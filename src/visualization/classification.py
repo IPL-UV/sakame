@@ -151,7 +151,7 @@ def plot_sensitivity(
     support_vectors: Optional[np.ndarray] = None,
 ):
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(20, 10))
 
     cm_points = ListedColormap(["r", "g"])
     cm_grid = LinearSegmentedColormap.from_list("MyCmapName", ["#778899", "#FFFF00"])

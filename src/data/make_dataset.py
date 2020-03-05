@@ -392,7 +392,7 @@ class ToyData2D(object):
 
     def plot_sensitivity(self, X, y, derX, demo=True):
 
-        colormap = LinearSegmentedColormap.from_list("MyCmapName", ["b", "r", "y"])
+        colormap = LinearSegmentedColormap.from_list("MyCmapName", ["b", "gray", "y"])
         colorbars = []
         colorbars.append(derX[:, 0] ** 2)
         colorbars.append(derX[:, 1] ** 2)
