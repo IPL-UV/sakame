@@ -82,8 +82,8 @@ def plot_predictions(
 
     fig, ax = plt.subplots()
 
-    cm_points = ListedColormap(["r", "g"])
-    cm_grid = LinearSegmentedColormap.from_list("MyCmapName", ["r", "g"])
+    cm_points = ListedColormap(["g", "r"])
+    cm_grid = LinearSegmentedColormap.from_list("MyCmapName", ["g", "r"])
 
     z_grid = decision_function(np.c_[xx.ravel(), yy.ravel()])
 
@@ -153,7 +153,7 @@ def plot_sensitivity(
 
     fig, ax = plt.subplots(figsize=(20, 10))
 
-    cm_points = ListedColormap(["r", "g"])
+    cm_points = ListedColormap(["g", "r"])
     cm_grid = LinearSegmentedColormap.from_list("MyCmapName", ["#778899", "#FFFF00"])
 
     # plot the decision boundary contours
