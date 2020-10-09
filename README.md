@@ -3,54 +3,10 @@
 
 Kernel Derivatives for Kernel Methods.
 
-Project Organization
-------------
-
-    ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
-    ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    │   └── raw            <- The original, immutable data dump.
-    │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
-    │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
-    │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
-    │
-    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-    │
-    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
-    │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
-    │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
-    │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
-    │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
-    │
-    └── tox.ini            <- tox file with settings for running tox; see tox.testrun.org
-
+<details>
+    <summary>Abstract</summary>
+    Kernel methods are powerful machine learning techniques which implement generic non-linear functions to solve complex tasks in a simple way. They Have a solid mathematical background and exhibit excellent performance in practice. However, kernel machines are still considered black-box models as the feature mapping is not directly accessible and difficult to interpret.The aim of this work is to show that it is indeed possible to interpret the functions learned by various kernel methods is intuitive despite their complexity. Specifically, we show that derivatives of these functions have a simple mathematical formulation, are easy to compute, and can be applied to many different problems. We note that model function derivatives in kernel machines is proportional to the kernel function derivative. We provide the explicit analytic form of the first and second derivatives of the most common kernel functions with regard to the inputs as well as generic formulas to compute higher order derivatives. We use them to analyze the most used supervised and unsupervised kernel learning methods: Gaussian Processes for regression, Support Vector Machines for classification, Kernel Entropy Component Analysis for density estimation, and the Hilbert-Schmidt Independence Criterion for estimating the dependency between random variables. For all cases we expressed the derivative of the learned function as a linear combination of the kernel function derivative. Moreover we provide intuitive explanations through illustrative toy examples and show how to improve the interpretation of real applications in the context of spatiotemporal Earth system data cubes. This work reflects on the observation that function derivatives may play a crucial role in kernel methods analysis and understanding.
+</details>
 
 --------
 
